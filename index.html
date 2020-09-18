@@ -326,8 +326,8 @@
 
       }
 
-      let newGame = document.getElementById('counter');
-      newGame.addEventListener('touchend', () => {
+
+      const resetGame = (e) => {
          if (readyForNewGame === true) {
             B.style.opacity = 0
             canvas.style.border = 'solid 1px slateblue'
@@ -342,8 +342,11 @@
             ctxFireworks.clearRect(0, 0, canvas2.width, canvas2.height);
             readyForNewGame = false;
          }
-      })
+      }
 
+      let newGame = document.getElementById('counter');
+      newGame.addEventListener('touchend', resetGame)
+      newGame.addEventListener('click', resetGame)
 
       const makeFirstSound = (e) => {
          if (playAudioOnClick === true) {
