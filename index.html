@@ -1,0 +1,458 @@
+<head>
+   <meta name="viewport" content="width=device-width, user-scalable=no">
+</head>
+
+<body>
+
+   <img id="panda" style='height: 100%; width: 100%; object-fit: cover' src='1.jpg' />
+   <div id="wrap">
+
+      <canvas id="canvas">
+
+      </canvas>
+      <canvas id="fireworks"></canvas>
+   </div>
+   <div id="image-wrap"><img src='7.png' id="B" class="shadowed" /></div>
+   <div id="counter"></div>
+
+   <style>
+      html * {
+         -moz-user-select: none;
+         -webkit-user-select: none;
+         -ms-user-select: none;
+         user-select: none;
+      }
+
+      body {
+         background-color: #b6f9ff;
+         margin: 0;
+         cursor: url(1.cur) 4 12, auto !important;
+         overflow: hidden;
+         width: 100%;
+         height: 100%;
+      }
+
+      canvas {
+         border: solid 1px slateblue;
+         /*  height: auto; */
+         /* width: 70vw; */
+         /* max-width: ; */
+
+
+         margin: 0;
+         /*  position: absolute; */
+         /* top: 50%; */
+         /* left: 50%; */
+         /*  -webkit-transform: translate(-50%, 34%);
+         -ms-transform: translate(-50%, 34%); */
+         /*  transform: translate(-50%, -50%);  */
+         /* top: 30%; */
+         opacity: 1;
+      }
+
+      canvas#fireworks {
+         position: absolute !important;
+         top: 0;
+         left: 0;
+         pointer-events: none;
+         display: none;
+         border: none;
+      }
+
+      #wrap {
+         text-align: center;
+         position: relative;
+      }
+
+      img#panda {
+         /* top: 0; */
+         position: absolute;
+         max-width: 100%;
+         max-height: 100%;
+         object-fit: cover;
+         min-width: 100%;
+         min-height: 100%;
+      }
+
+      img#B {
+         z-index: 100;
+         width: 100vw;
+         /* display: block; */
+         position: absolute;
+         left: 2vw;
+         top: 0;
+         right: 0;
+         bottom: 0;
+         /* margin: auto; */
+         pointer-events: none;
+         /* display: none; */
+         transition: 3s all;
+         opacity: 0;
+      }
+
+      #image-wrap {
+         /* display: flex;
+         justify-content: center; */
+         /* position: relative; */
+      }
+
+      #counter {
+         display: none;
+         position: absolute;
+         font-size: 4em;
+         color: steelblue;
+         font-weight: 900;
+         font-family: cursive;
+         text-shadow: 4px 3px 12px #A22CCE;
+      }
+
+      .shadowed {
+         filter: drop-shadow(11px 12px 4px rgb(111 76 232 / 100%));
+         filter: drop-shadow(11px 12px 4px rgb(91 27 181 / 100%));
+      }
+   </style>
+   <script>
+      'use strict';
+      let globalWidth, ratio;
+      let numberOfTries = 3;
+      let currentTries = 0;
+      let count = 0
+      let canvas2 = document.getElementById('fireworks');
+      let readyForNewGame = false;
+      let pauseFireworks = false;
+      let ctxFireworks;
+
+      const resize = (e) => {
+         let canvas = document.getElementById('canvas');
+
+         canvas.style.opacity = 0.7;
+         canvas./* style. */width = window.innerWidth * 0.7;
+         // width: 70vw;
+         let width = window.getComputedStyle(canvas, false).width;
+         let height = window.getComputedStyle(canvas, false).width;
+         let windowHeight = window.innerHeight;
+         let heightStyle = parseInt(width) / 1.9;
+
+         canvas./* style. */height = heightStyle
+         canvas.style.marginTop = (windowHeight - heightStyle) / 1.8;
+         globalWidth = parseInt(width);
+         console.log(globalWidth)
+         let previousRatio = ratio || globalWidth / 1344;
+         ratio = globalWidth / 1344 //1
+         let difference = ratio / previousRatio
+
+         radius = radius * difference
+         roundArea = roundArea * difference
+         ballRadius = radius
+         x = x * difference;
+         y = y * difference;
+         dx = difference * dx;
+         dy = difference * -dy;
+         speed = difference * speed;
+
+         canvas2.height = window.innerHeight
+         canvas2.width = window.innerWidth
+
+
+         canvas2.style.left = 0;
+         canvas2.style.top = 0;
+
+         let r = canvas.getBoundingClientRect()
+         let counter = document.getElementById('counter');
+
+         if (window.innerHeight - r.height > 200) {
+            counter.style.left = r.left + r.width / 2
+            counter.style.top = r.top + r.height;
+         } else {
+            counter.style.left = r.left - window.innerWidth / 10
+            counter.style.top = r.top + r.height / 2;
+         }
+
+         let img = document.getElementById('panda');
+         let imgR = img.getBoundingClientRect();
+         let ratioImg = imgR.height / imgR.width
+         if (imgR.width <= window.innerWidth) {
+            img.style.width = window.innerWidth + 5 + 'px'
+            img.style.maxWidth = '102%';
+            img.style.maxHeight = '102%';
+            img.style.minWidth = '102%';
+            img.style.minHeight = '102%';
+            img.width = window.innerWidth + 5
+            img.height = ratioImg * (window.innerWidth + 5)
+         }
+
+      }
+      window.addEventListener('resize', resize)
+      window.addEventListener("orientationchange", function () {
+         resize()
+      }, false);
+      resize();
+      var x, y, ballRadius, dx, dy, radius = 80 * ratio, roundArea = 30 * ratio, speed = ratio * 0.5;
+      window.addEventListener('contextmenu', (e) => {
+         e.preventDefault();
+      })
+
+      var ctx = canvas.getContext("2d");
+      const drawCircle = (x, y, r) => {
+         ctx.beginPath();
+         const randomColor = Math.floor(Math.random() * 16777215).toString(16);
+         const randomStrokeColor = Math.floor(Math.random() * 16777215).toString(16);
+         ctx.fillStyle = "#" + randomColor;
+         ctx.arc(x, y, r, 0, 2 * Math.PI);
+         ctx.fill();
+         ctx.strokeStyle = "#" + randomStrokeColor;
+         ctx.stroke();
+      }
+      //drawCircle(ratio * 100, ratio * 200, ratio * 20)
+
+
+      function getRandomInt(min, max) {
+         min = Math.ceil(min);
+         max = Math.floor(max);
+         return Math.floor(Math.random() * (max - min + 1)) + min;
+      }
+
+      var randomColor
+      var randomStrokeColor
+
+      randomColor = Math.floor(Math.random() * 16777215).toString(16);
+      randomStrokeColor = Math.floor(Math.random() * 16777215).toString(16);
+      //
+      ballRadius = radius;
+      /*  var x = canvas.width / 2;
+       var y = canvas.height - ratio * 50; */
+      x = getRandomInt(ballRadius + 20, canvas.width - (ballRadius + 20))
+      y = getRandomInt(ballRadius + 20, canvas.height - (ballRadius + 20))
+      dx = speed;
+      dy = -speed;
+
+      function drawBall() {
+         /* ctx.beginPath();
+         ctx.arc(x, y, ballRadius, 0, Math.PI * 2);
+         ctx.fillStyle = "#0095DD";
+         ctx.fill();
+         ctx.closePath(); */
+         ctx.beginPath();
+         ctx.fillStyle = "#" + randomColor;
+         ctx.arc(x, y, ballRadius, 0, 2 * Math.PI);
+         ctx.fill();
+         ctx.strokeStyle = "#" + randomStrokeColor;
+         ctx.stroke();
+      }
+      function draw() {
+         ctx.clearRect(0, 0, canvas.width, canvas.height);
+         requestAnimationFrame(() => {
+            drawBall();
+         })
+         if (x + dx > canvas.width - ballRadius || x + dx < ballRadius) {
+            dx = -dx;
+
+            randomColor = Math.floor(Math.random() * 16777215).toString(16);
+            randomStrokeColor = Math.floor(Math.random() * 16777215).toString(16);
+         }
+         if (y + dy > canvas.height - ballRadius || y + dy < ballRadius) {
+            dy = -dy;
+
+            randomColor = Math.floor(Math.random() * 16777215).toString(16);
+            randomStrokeColor = Math.floor(Math.random() * 16777215).toString(16);
+         }
+         x += dx;
+         y += dy;
+      }
+      setInterval(draw, 7);
+      //
+
+
+      var audio = new Audio('1.mp3');
+      let firstSound = true, playAudioOnClick = false;
+      const clickTheCircle = (e) => {
+         let cx, cy;
+         let rectangle = canvas.getBoundingClientRect()
+         if (e.type === 'touchstart') {
+            e.preventDefault();
+            let touches = event.changedTouches,
+               first = touches[0];
+            cx = first.clientX - rectangle.x;
+            cy = first.clientY - rectangle.y;
+         } else {
+            cx = e.clientX - rectangle.x;
+            cy = e.clientY - rectangle.y;
+         }
+         if (cx < x + (radius + roundArea) && cx > x - (radius + roundArea) && cy < y + (radius + roundArea) && cy > y - (radius + roundArea)) {
+            console.log('clicked')
+            if (Math.abs(dx) === dx) { dx += speed } else {
+               dx -= speed
+            }
+            if (Math.abs(dy) === dy) { dy += speed } else {
+               dy -= speed
+            }
+            count++;
+            let counter = document.getElementById('counter');
+            counter.style.display = 'block'
+            counter.innerText = count
+            let direction = getRandomInt(0, 1)
+            if (direction === 1) { dx = -dx; }
+            else { dy = -dy; }
+            /* audio.muted = true; */
+            // setTimeout(() => {
+
+            if (firstSound === false || e.type !== 'touchstart') {
+               audio.play();
+            }
+            else {
+               playAudioOnClick = true;
+            }
+            firstSound = false;
+
+            randomColor = Math.floor(Math.random() * 16777215).toString(16);
+            randomStrokeColor = Math.floor(Math.random() * 16777215).toString(16);
+
+            //  }, 0);
+
+
+
+
+         } else {
+            currentTries++;
+            if (currentTries === numberOfTries) {
+               pauseFireworks = false;
+               fireWorks()
+               let B = document.getElementById('B');
+               B.style.opacity = 1
+               canvas.style.border = 'none'
+               readyForNewGame = true;
+            }
+         }
+
+      }
+
+      let newGame = document.getElementById('counter');
+      newGame.addEventListener('touchend', () => {
+         if (readyForNewGame === true) {
+            B.style.opacity = 0
+            canvas.style.border = 'solid 1px slateblue'
+            currentTries = 0;
+            count = 0;
+            newGame.style.display = 'none'
+            newGame.innerText = count
+            speed = ratio * 0.5
+            dx = speed * Math.sign(dx);
+            dy = speed * Math.sign(dy);
+            pauseFireworks = true;
+            ctxFireworks.clearRect(0, 0, canvas2.width, canvas2.height);
+            readyForNewGame = false;
+         }
+      })
+
+
+      const makeFirstSound = (e) => {
+         if (playAudioOnClick === true) {
+            audio.play();
+            playAudioOnClick = false;
+         }
+      }
+
+      canvas.addEventListener('mousedown', clickTheCircle)
+      canvas.addEventListener('touchstart', clickTheCircle, { passive: false })
+      document.addEventListener('touchend', makeFirstSound)
+
+
+
+
+
+
+      const fireWorks = () => {
+         const max_fireworks = 5,
+            max_sparks = 20;
+
+         canvas2.left = 0;
+         canvas2.top = 0;
+         canvas2.width = window.innerWidth - 40;
+         canvas2.height = window.innerHeight - 40;
+         canvas2.style.position = 'absolute'
+         canvas2.style.display = 'block';
+
+         let context = canvas2.getContext('2d');
+         ctxFireworks = context;
+         let fireworks = [];
+
+         for (let i = 0; i < max_fireworks; i++) {
+            let firework = {
+               sparks: []
+            };
+            for (let n = 0; n < max_sparks; n++) {
+               let spark = {
+                  vx: Math.random() * 5 + .5,
+                  vy: Math.random() * 5 + .5,
+                  weight: Math.random() * .3 + .03,
+                  red: Math.floor(Math.random() * 2),
+                  green: Math.floor(Math.random() * 2),
+                  blue: Math.floor(Math.random() * 2)
+               };
+               if (Math.random() > .5) spark.vx = -spark.vx;
+               if (Math.random() > .5) spark.vy = -spark.vy;
+               firework.sparks.push(spark);
+            }
+            fireworks.push(firework);
+            resetFirework(firework);
+         }
+         window.requestAnimationFrame(explode);
+
+         function resetFirework(firework) {
+            firework.x = Math.floor(Math.random() * canvas2.width);
+            firework.y = canvas2.height;
+            firework.age = 0;
+            firework.phase = 'fly';
+         }
+
+         function explode() {
+            context.clearRect(0, 0, canvas2.width, canvas2.height);
+            fireworks.forEach((firework, index) => {
+               if (firework.phase == 'explode') {
+                  firework.sparks.forEach((spark) => {
+                     for (let i = 0; i < 10; i++) {
+                        let trailAge = firework.age + i;
+                        let x = firework.x + spark.vx * trailAge;
+                        let y = firework.y + spark.vy * trailAge + spark.weight * trailAge * spark.weight * trailAge;
+                        let fade = i * 20 - firework.age * 0;
+                        let r = Math.floor(spark.red * fade);
+                        let g = Math.floor(spark.green * fade);
+                        let b = Math.floor(spark.blue * fade);
+                        context.beginPath();
+                        context.fillStyle = 'rgba(' + r + ',' + g + ',' + b + ',1)';
+                        context.rect(x, y, 4, 4);
+                        context.fill();
+                     }
+                  });
+                  firework.age++;
+                  if (firework.age > 100 && Math.random() < .05) {
+                     resetFirework(firework);
+                  }
+               } else {
+                  firework.y = firework.y - 10;
+                  for (let spark = 0; spark < 15; spark++) {
+                     context.beginPath();
+                     context.fillStyle = 'rgba(' + index * 50 + ',' + spark * 17 + ',0,1)';
+                     context.rect(firework.x + Math.random() * spark - spark / 2, firework.y + spark * 4, 4, 4);
+                     context.fill();
+                  }
+                  if (Math.random() < .001 || firework.y < 200) firework.phase = 'explode';
+               }
+            });
+            window.requestAnimationFrame(() => {
+               if (pauseFireworks === false) {
+                  setTimeout(function () {
+                     explode()
+                  }, 12);
+               } else {
+                  ctxFireworks.clearRect(0, 0, canvas2.width, canvas2.height);
+               }
+
+            });
+         }
+      }
+
+
+
+   </script>
+</body>
